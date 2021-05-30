@@ -2,6 +2,7 @@ const loginValidator = require("../validators/loginValidator")
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const { resourceError, serverError } = require("../errors/errorHandler")
+const jwt = require('jsonwebtoken')
 
 module.exports = {
     loginGetController(req, res, next){
@@ -26,7 +27,15 @@ module.exports = {
                         return resourceError(res, 'Password doesn\'t matched')
                     }
 
-                    res.status(200).json({ message:'Logged in successfully'})
+                    let token = jwt.sign({
+                        _id: user._id,
+                        username: user.username,
+                    }, 'SECRET', {expiresIn:'7d'})
+
+                    res.status(200).json({
+                        message: 'Logged in successfully',
+                        token: `Bearer ${token}`
+                    })
                 })
             })
             .catch(err=>serverError(res))
